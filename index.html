@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Friend's Store Name</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: "#050505",
+            panel: "#0b0b0b",
+            panel2: "#111111",
+            line: "rgba(255,255,255,0.08)",
+            neon: "#b6ff4d"
+          },
+          boxShadow: {
+            glow: "0 0 0 1px rgba(182,255,77,0.18), 0 20px 60px rgba(0,0,0,0.55)"
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+    .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(18px); }
+    .soft-border { border: 1px solid rgba(255,255,255,0.08); }
+    .hero-grid {
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(182,255,77,0.12), transparent 28%),
+        radial-gradient(circle at 80% 0%, rgba(255,255,255,0.08), transparent 25%),
+        linear-gradient(to bottom, rgba(255,255,255,0.03), transparent 40%);
+    }
+    .fade-up { animation: fadeUp 0.7s ease both; }
+    .fade-up-delay-1 { animation: fadeUp 0.8s ease both 0.08s; }
+    .fade-up-delay-2 { animation: fadeUp 0.9s ease both 0.16s; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .card-hover { transition: transform .25s ease, border-color .25s ease, background .25s ease; }
+    .card-hover:hover { transform: translateY(-4px); border-color: rgba(182,255,77,0.35); background: rgba(255,255,255,0.045); }
+    .tab-active { background: white; color: black; box-shadow: 0 0 0 1px rgba(255,255,255,0.08); }
+    .tab-inactive { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.75); }
+  </style>
+</head>
+<body class="bg-bg text-white antialiased selection:bg-neon selection:text-black">
+  <div id="app"></div>
+
+  <script>
+    const products = [
+      {
+        id: 1,
+        name: "MacBook Pro M2 14-inch",
+        category: "Tech",
+        condition: "Like New",
+        price: "$1,399",
+        status: "Available",
+        img: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80"
+        ],
+        desc: "Premium secondhand MacBook with battery health verified and clean body."
+      },
+      {
+        id: 2,
+        name: "AirPods Pro 2",
+        category: "Accessories",
+        condition: "Open Box",
+        price: "$189",
+        status: "Sold",
+        img: "https://images.unsplash.com/photo-1588156979435-6245f85d1d59?auto=format&fit=crop&w=1200&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1588156979435-6245f85d1d59?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1603351154351-5e2d0600bb77?auto=format&fit=crop&w=1200&q=80"
+        ],
+        desc: "Open box, tested, and ready for daily use."
+      },
+      {
+        id: 3,
+        name: "PS5 Disc Edition",
+        category: "Gaming",
+        condition: "Used",
+        price: "$449",
+        status: "Available",
+        img: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=1200&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1621259182978-fbf93132d53d?auto=format&fit=crop&w=1200&q=80"
+        ],
+        desc: "Clean console, controller included, great condition."
+      },
+      {
+        id: 4,
+        name: "Sp5der Hoodie",
+        category: "Clothing",
+        condition: "Like New",
+        price: "$220",
+        status: "Available",
+        img: "https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=1200&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=1200&q=80"
+        ],
+        desc: "Heavyweight streetwear piece with premium feel."
+      },
+      {
+        id: 5,
+        name: "Deadstock Nike Dunks",
+        category: "Clothing",
+        condition: "Open Box",
+        price: "$279",
+        status: "Sold",
+        img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=1200&q=80"
+        ],
+        desc: "Deadstock pair, authenticated condition."
+      },
+      {
+        id: 6,
+        name: "Apple Watch Ultra",
+        category: "Tech",
+        condition: "Used",
+        price: "$599",
+        status: "Available",
+        img: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=1200&q=80",
+        gallery: [
+          "https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=1200&q=80",
+          "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?auto=format&fit=crop&w=1200&q=80"
+        ],
+        desc: "Luxury smartwatch in excellent condition."
+      }
+    ];
+
+    const state = { page: "home", filter: "All", selectedId: 1 };
+
+    const app = document.getElementById("app");
+
+    function nav() {
+      return `
+      <header class="sticky top-0 z-50 border-b border-white/10 bg-black/70 backdrop-blur-xl">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div class="flex h-16 items-center justify-between">
+            <button onclick="go('home')" class="text-left">
+              <div class="text-lg font-black tracking-tight">Your Friend's Store Name</div>
+              <div class="text-[11px] uppercase tracking-[0.35em] text-white/40">Premium Resells</div>
+            </button>
+            <nav class="hidden md:flex items-center gap-2">
+              ${["home","shop","about","contact"].map(p => `
+                <button onclick="go('${p}')" class="rounded-full px-4 py-2 text-sm font-medium transition ${state.page===p ? 'bg-white text-black' : 'text-white/70 hover:text-white hover:bg-white/5'}">${p.charAt(0).toUpperCase()+p.slice(1)}</button>
+              `).join("")}
+            </nav>
+            <button onclick="go('shop')" class="rounded-full bg-neon px-4 py-2 text-sm font-bold text-black hover:opacity-90 transition">Shop Now</button>
+          </div>
+        </div>
+      </header>`;
+    }
+
+    function badge(status) {
+      return status === "Sold"
+        ? `<span class="rounded-full bg-red-500/15 px-3 py-1 text-xs font-bold text-red-300 border border-red-500/20">Sold</span>`
+        : `<span class="rounded-full bg-neon/15 px-3 py-1 text-xs font-bold text-neon border border-neon/20">Available</span>`;
+    }
+
+    function productCard(p) {
+      return `
+        <button onclick="openProduct(${p.id})" class="text-left group rounded-3xl soft-border bg-panel p-3 sm:p-4 card-hover overflow-hidden">
+          <div class="relative aspect-[4/3] overflow-hidden rounded-2xl bg-white/5">
+            <img src="${p.img}" alt="${p.name}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+            <div class="absolute left-3 top-3">${badge(p.status)}</div>
+          </div>
+          <div class="mt-4 flex items-center justify-between gap-3">
+            <div>
+              <div class="text-base font-bold">${p.name}</div>
+              <div class="text-xs uppercase tracking-[0.25em] text-white/40">${p.category}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-lg font-black">${p.price}</div>
+              <div class="text-xs text-white/45">${p.condition}</div>
+            </div>
+          </div>
+        </button>
+      `;
+    }
+
+    function homePage() {
+      const featured = products.slice(0, 3);
+      return `
+        <main>
+          <section class="hero-grid border-b border-white/10">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+              <div class="grid gap-10 lg:grid-cols-2 lg:items-center">
+                <div class="fade-up">
+                  <div class="mb-5 inline-flex rounded-full soft-border glass px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/70">
+                    Authenticated • Premium • Fast Shipping
+                  </div>
+                  <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[0.95]">
+                    Premium Resells.
+                    <span class="text-neon">Authenticated.</span>
+                  </h1>
+                  <p class="mt-6 max-w-xl text-base sm:text-lg text-white/65 leading-7">
+                    Clean secondhand and deadstock MacBooks, AirPods, PS5s, Sp5der clothing, and streetwear/tech essentials curated for the culture.
+                  </p>
+                  <div class="mt-8 flex flex-col sm:flex-row gap-3">
+                    <button onclick="go('shop')" class="rounded-full bg-white px-6 py-3 font-bold text-black transition hover:opacity-90">Browse Shop</button>
+                    <button onclick="go('contact')" class="rounded-full soft-border bg-white/5 px-6 py-3 font-bold text-white transition hover:bg-white/10">Message Us</button>
+                  </div>
+                  <div class="mt-10 flex flex-wrap gap-4 text-sm text-white/60">
+                    <div class="soft-border rounded-2xl px-4 py-3">100+ items sold</div>
+                    <div class="soft-border rounded-2xl px-4 py-3">Real products only</div>
+                    <div class="soft-border rounded-2xl px-4 py-3">Fast shipping</div>
+                  </div>
+                </div>
+                <div class="fade-up-delay-1">
+                  <div class="soft-border rounded-[2rem] bg-panel p-4 shadow-glow">
+                    <img src="${featured[0].img}" class="h-[420px] w-full rounded-[1.5rem] object-cover" alt="Featured item" />
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                      ${featured.slice(1).map(p => `
+                        <button onclick="openProduct(${p.id})" class="rounded-2xl soft-border bg-white/5 p-3 text-left transition hover:bg-white/10">
+                          <div class="text-sm font-bold">${p.name}</div>
+                          <div class="text-xs text-white/45">${p.price} • ${p.condition}</div>
+                        </button>
+                      `).join("")}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
+            <div class="flex items-end justify-between gap-4 mb-6">
+              <div>
+                <h2 class="text-2xl sm:text-3xl font-black">Featured Listings</h2>
+                <p class="mt-2 text-white/55">Handpicked drops across tech, clothing, gaming, and accessories.</p>
+              </div>
+              <button onclick="go('shop')" class="hidden sm:inline-flex rounded-full soft-border px-4 py-2 text-sm font-semibold text-white/80 hover:bg-white/5">View All</button>
+            </div>
+            <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              ${products.map(productCard).join("")}
+            </div>
+          </section>
+        </main>
+      `;
+    }
+
+    function shopPage() {
+      const filtered = state.filter === "All" ? products : products.filter(p => p.category === state.filter);
+      const tabs = ["All","Tech","Clothing","Gaming","Accessories"];
+      return `
+        <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+          <div class="mb-8">
+            <h1 class="text-3xl sm:text-4xl font-black">Shop</h1>
+            <p class="mt-3 text-white/60">Tap a product to see details and message to buy.</p>
+          </div>
+          <div class="flex flex-wrap gap-2 mb-8">
+            ${tabs.map(t => `<button onclick="setFilter('${t}')" class="rounded-full px-4 py-2 text-sm font-semibold transition ${state.filter===t ? 'tab-active' : 'tab-inactive hover:bg-white/8'}">${t}</button>`).join("")}
+          </div>
+          <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            ${filtered.map(productCard).join("")}
+          </div>
+        </main>
+      `;
+    }
+
+    function productPage() {
+      const p = products.find(x => x.id === state.selectedId) || products[0];
+      return `
+        <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+          <div class="grid gap-8 lg:grid-cols-2">
+            <div>
+              <div class="overflow-hidden rounded-[2rem] soft-border bg-panel">
+                <img id="mainImg" src="${p.gallery[0]}" class="h-[420px] w-full object-cover" alt="${p.name}" />
+              </div>
+              <div class="mt-4 grid grid-cols-3 gap-3">
+                ${p.gallery.map((img, i) => `
+                  <button onclick="swapImg('${img.replace(/'/g, "\\'")}')" class="overflow-hidden rounded-2xl soft-border bg-white/5">
+                    <img src="${img}" class="h-24 w-full object-cover opacity-90 hover:opacity-100 transition" alt="gallery ${i+1}" />
+                  </button>
+                `).join("")}
+              </div>
+            </div>
+            <div class="lg:pt-4">
+              <div class="mb-4 flex items-center gap-3">${badge(p.status)} <span class="text-white/40 text-sm uppercase tracking-[0.25em]">${p.category}</span></div>
+              <h1 class="text-4xl sm:text-5xl font-black tracking-tight">${p.name}</h1>
+              <div class="mt-5 flex items-end gap-4">
+                <div class="text-4xl font-black">${p.price}</div>
+                <div class="pb-1 text-sm text-white/45">Condition: ${p.condition}</div>
+              </div>
+              <p class="mt-6 max-w-xl text-white/65 leading-7">${p.desc}</p>
+              <div class="mt-8 grid gap-3 sm:grid-cols-2">
+                <div class="rounded-2xl soft-border bg-white/5 p-4">
+                  <div class="text-xs uppercase tracking-[0.25em] text-white/45">Item Condition</div>
+                  <div class="mt-2 font-bold">${p.condition}</div>
+                </div>
+                <div class="rounded-2xl soft-border bg-white/5 p-4">
+                  <div class="text-xs uppercase tracking-[0.25em] text-white/45">Status</div>
+                  <div class="mt-2 font-bold">${p.status}</div>
+                </div>
+              </div>
+              <div class="mt-8 flex flex-col sm:flex-row gap-3">
+                <button onclick="messageToBuy('${p.name}')" class="rounded-full bg-neon px-6 py-3 font-bold text-black transition hover:opacity-90">Message to Buy</button>
+                <button onclick="go('shop')" class="rounded-full soft-border bg-white/5 px-6 py-3 font-bold text-white transition hover:bg-white/10">Back to Shop</button>
+              </div>
+            </div>
+          </div>
+        </main>
+      `;
+    }
+
+    function aboutPage() {
+      return `
+        <main class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+          <div class="rounded-[2rem] soft-border bg-panel p-8 sm:p-10">
+            <h1 class="text-3xl sm:text-4xl font-black">About</h1>
+            <p class="mt-6 text-white/65 leading-7">
+              We’re a modern reseller store built for people who want premium items without the guesswork.
+              Every listing is curated to feel clean, authentic, and easy to buy from your phone.
+            </p>
+            <div class="mt-8 grid gap-4 sm:grid-cols-3">
+              <div class="rounded-2xl soft-border bg-white/5 p-5">
+                <div class="text-3xl font-black text-neon">100+</div>
+                <div class="mt-1 text-sm text-white/60">items sold</div>
+              </div>
+              <div class="rounded-2xl soft-border bg-white/5 p-5">
+                <div class="text-3xl font-black text-neon">Fast</div>
+                <div class="mt-1 text-sm text-white/60">shipping and response time</div>
+              </div>
+              <div class="rounded-2xl soft-border bg-white/5 p-5">
+                <div class="text-3xl font-black text-neon">Real</div>
+                <div class="mt-1 text-sm text-white/60">products only, no fluff</div>
+              </div>
+            </div>
+          </div>
+        </main>
+      `;
+    }
+
+    function contactPage() {
+      return `
+        <main class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+          <div class="rounded-[2rem] soft-border bg-panel p-8 sm:p-10">
+            <h1 class="text-3xl sm:text-4xl font-black">Contact</h1>
+            <p class="mt-4 text-white/60">Reach out on your preferred platform to buy, ask questions, or request more photos.</p>
+            <div class="mt-8 grid gap-4 sm:grid-cols-3">
+              <button onclick="window.open('https://instagram.com', '_blank')" class="rounded-2xl soft-border bg-white/5 p-5 text-left transition hover:bg-white/10">
+                <div class="font-bold">Instagram</div>
+                <div class="mt-1 text-sm text-white/55">DM us for fast replies</div>
+              </button>
+              <button onclick="window.open('https://snapchat.com', '_blank')" class="rounded-2xl soft-border bg-white/5 p-5 text-left transition hover:bg-white/10">
+                <div class="font-bold">Snapchat</div>
+                <div class="mt-1 text-sm text-white/55">Quick item updates</div>
+              </button>
+              <button onclick="messageToBuy('General Inquiry')" class="rounded-2xl soft-border bg-white/5 p-5 text-left transition hover:bg-white/10">
+                <div class="font-bold">WhatsApp</div>
+                <div class="mt-1 text-sm text-white/55">Tap to message directly</div>
+              </button>
+            </div>
+          </div>
+        </main>
+      `;
+    }
+
+    function footer() {
+      return `
+        <footer class="border-t border-white/10 py-8">
+          <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-sm text-white/45 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <div>© 2026 Your Friend's Store Name</div>
+            <div>Premium resells • authenticated vibe • mobile-first</div>
+          </div>
+        </footer>
+      `;
+    }
+
+    function render() {
+      let page = "";
+      if (state.page === "home") page = homePage();
+      if (state.page === "shop") page = shopPage();
+      if (state.page === "product") page = productPage();
+      if (state.page === "about") page = aboutPage();
+      if (state.page === "contact") page = contactPage();
+      app.innerHTML = nav() + page + footer();
+    }
+
+    function go(page) { state.page = page; render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+    function setFilter(filter) { state.filter = filter; state.page = "shop"; render(); }
+    function openProduct(id) { state.selectedId = id; state.page = "product"; render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+    function swapImg(src) { document.getElementById("mainImg").src = src; }
+    function messageToBuy(item) {
+      const text = encodeURIComponent(`Hi, I'm interested in buying: ${item}. Is it still available?`);
+      window.open(`https://wa.me/1234567890?text=${text}`, "_blank");
+    }
+
+    render();
+  </script>
+</body>
+</html>
