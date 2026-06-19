@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Store Name</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { bg:"#050505", panel:"#0b0b0b", neon:"#b6ff4d" },
+          boxShadow: { glow:"0 0 0 1px rgba(182,255,77,0.18), 0 20px 60px rgba(0,0,0,0.55)" }
+        }
+      }
+    };
+  </script>
+  <style>
+    html{scroll-behavior:smooth}
+    .glass{background:rgba(255,255,255,0.03);backdrop-filter:blur(18px)}
+    .soft-border{border:1px solid rgba(255,255,255,0.08)}
+    .hero-grid{background-image:radial-gradient(circle at 20% 20%,rgba(182,255,77,0.12),transparent 28%),radial-gradient(circle at 80% 0%,rgba(255,255,255,0.08),transparent 25%),linear-gradient(to bottom,rgba(255,255,255,0.03),transparent 40%)}
+    .fade-up{animation:fadeUp 0.7s ease both}
+    .fade-up-2{animation:fadeUp 0.8s ease both 0.1s}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    .card-hover{transition:transform .25s ease,border-color .25s ease,background .25s ease}
+    .card-hover:hover{transform:translateY(-4px);border-color:rgba(182,255,77,0.35);background:rgba(255,255,255,0.045)}
+    .tab-active{background:white;color:black}
+    .tab-inactive{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.75)}
+    .ai{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;color:white;padding:10px 14px;width:100%;font-size:14px;outline:none;transition:border-color .2s}
+    .ai:focus{border-color:rgba(182,255,77,0.5)}
+    .ai option{background:#111}
+    .upload-zone{border:2px dashed rgba(255,255,255,0.15);border-radius:16px;padding:32px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
+    .upload-zone:hover,.upload-zone.drag-over{border-color:rgba(182,255,77,0.5);background:rgba(182,255,77,0.04)}
+    .tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:12px}
+    .ti{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden}
+    .ti img{width:100%;height:100%;object-fit:cover}
+    .tr{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.75);border:none;border-radius:50%;color:white;width:20px;height:20px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px}
+    .mbox{background:#0b0b0b;border:1px solid rgba(255,255,255,0.1);border-radius:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;padding:28px}
+    .apanel{position:fixed;inset:0;background:#050505;z-index:300;overflow-y:auto}
+    .del-btn{opacity:0;transition:opacity .2s}
+    .card-hover:hover .del-btn{opacity:1}
+    ::-webkit-scrollbar{width:6px}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:99px}
+  </style>
+</head>
+<body class="bg-bg text-white antialiased selection:bg-neon selection:text-black">
+<div id="app"></div>
+<script>
+const DEF = [
+  {id:1,name:"MacBook Pro M2 14-inch",category:"Tech",condition:"Like New",price:"1399",status:"Available",images:["https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80"],desc:"Premium secondhand MacBook with battery health verified and clean body."},
+  {id:2,name:"AirPods Pro 2",category:"Accessories",condition:"Open Box",price:"189",status:"Sold",images:["https://images.unsplash.com/photo-1588156979435-6245f85d1d59?auto=format&fit=crop&w=1200&q=80"],desc:"Open box, tested, and ready for daily use."},
+  {id:3,name:"PS5 Disc Edition",category:"Gaming",condition:"Used",price:"449",status:"Available",images:["https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=1200&q=80"],desc:"Clean console, controller included, great condition."},
+  {id:4,name:"Sp5der Hoodie",category:"Clothing",condition:"Like New",price:"220",status:"Available",images:["https://images.unsplash.com/photo-1523398002811-999ca8dec234?auto=format&fit=crop&w=1200&q=80"],desc:"Heavyweight streetwear piece with premium feel."},
+  {id:5,name:"Deadstock Nike Dunks",category:"Clothing",condition:"Open Box",price:"279",status:"Sold",images:["https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80"],desc:"Deadstock pair, authenticated condition."},
+  {id:6,name:"Apple Watch Ultra",category:"Tech",condition:"Used",price:"599",status:"Available",images:["https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=1200&q=80"],desc:"Luxury smartwatch in excellent condition."}
+];
+
+function loadP(){try{const s=localStorage.getItem('sp');return s?JSON.parse(s):DEF}catch(e){return DEF}}
+function saveP(){try{localStorage.setItem('sp',JSON.stringify(S.products))}catch(e){}}
+function loadSettings(){try{const s=localStorage.getItem('ss');return s?JSON.parse(s):{storeName:"Your Store Name",tagline:"Premium Resells. Authenticated.",instagram:"https://instagram.com",whatsapp:"1234567890",snapchat:"https://snapchat.com"}}catch(e){return{storeName:"Your Store Name",tagline:"Premium Resells. Authenticated.",instagram:"https://instagram.com",whatsapp:"1234567890",snapchat:"https://snapchat.com"}}}
+function saveSettings(){try{localStorage.setItem('ss',JSON.stringify(S.settings))}catch(e){}}
+
+const S={
+  page:"home",filter:"All",selId:null,
+  showAdmin:false,adminPage:"products",adminUnlocked:false,adminPw:"admin123",
+  editP:null,showAdd:false,
+  newP:{name:"",category:"Tech",condition:"Like New",price:"",status:"Available",images:[],desc:""},
+  products:loadP(),settings:loadSettings(),nextId:200
+};
+
+const app=document.getElementById("app");
+
+function fp(p){return"$"+Number(p).toLocaleString()}
+
+function bdg(status){
+  return status==="Sold"
+    ?`<span class="rounded-full bg-red-500/15 px-3 py-1 text-xs font-bold text-red-300 border border-red-500/20">Sold</span>`
+    :`<span class="rounded-full bg-neon/15 px-3 py-1 text-xs font-bold text-neon border border-neon/20">Available</span>`;
+}
+
+function fb(p){return p&&p.images&&p.images.length?p.images[0]:"https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80"}
+
+function pcard(p,admin){
+  return`<div class="relative group rounded-3xl soft-border bg-panel p-3 sm:p-4 card-hover overflow-hidden">
+    ${admin?`<button onclick="delP(${p.id})" class="del-btn absolute top-6 right-6 z-10 rounded-full bg-red-500/80 text-white text-xs px-3 py-1 font-bold">Delete</button>`:""}
+    <button onclick="openP(${p.id})" class="text-left w-full">
+      <div class="relative aspect-[4/3] overflow-hidden rounded-2xl bg-white/5">
+        <img src="${fb(p)}" alt="${p.name}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" onerror="this.src='https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80'" />
+        <div class="absolute left-3 top-3">${bdg(p.status)}</div>
+      </div>
+      <div class="mt-4 flex items-center justify-between gap-3">
+        <div><div class="text-base font-bold">${p.name}</div><div class="text-xs uppercase tracking-[0.25em] text-white/40">${p.category}</div></div>
+        <div class="text-right"><div class="text-lg font-black">${fp(p.price)}</div><div class="text-xs text-white/45">${p.condition}</div></div>
+      </div>
+    </button>
+    ${admin?`<button onclick="openEdit(${p.id})" class="mt-3 w-full rounded-xl border border-white/10 bg-white/5 py-2 text-xs font-bold text-white/70 hover:bg-white/10 transition">Edit Listing</button>`:""}
+  </div>`;
+}
+
+function navHTML(){
+  return`<header class="sticky top-0 z-50 border-b border-white/10 bg-black/70 backdrop-blur-xl">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-16 items-center justify-between">
+        <button onclick="go('home')" class="text-left">
+          <div class="text-lg font-black tracking-tight">${S.settings.storeName}</div>
+          <div class="text-[11px] uppercase tracking-[0.35em] text-white/40">Premium Resells</div>
+        </button>
+        <nav class="hidden md:flex items-center gap-2">
+          ${["home","shop","about","contact"].map(pg=>`<button onclick="go('${pg}')" class="rounded-full px-4 py-2 text-sm font-medium transition ${S.page===pg?'bg-white text-black':'text-white/70 hover:text-white hover:bg-white/5'}">${pg[0].toUpperCase()+pg.slice(1)}</button>`).join("")}
+        </nav>
+        <div class="flex items-center gap-2">
+          <button onclick="openAdmin()" class="rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-white/60 hover:bg-white/10 transition">⚙ Admin</button>
+          <button onclick="go('shop')" class="rounded-full bg-neon px-4 py-2 text-sm font-bold text-black hover:opacity-90 transition">Shop Now</button>
+        </div>
+      </div>
+    </div>
+  </header>`;
+}
+
+function homePage(){
+  const feat=S.products.slice(0,3);
+  const h=feat[0];
+  const hi=h&&h.images&&h.images.length?h.images[0]:"";
+  return`<main>
+    <section class="hero-grid border-b border-white/10">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+        <div class="grid gap-10 lg:grid-cols-2 lg:items-center">
+          <div class="fade-up">
+            <div class="mb-5 inline-flex rounded-full soft-border glass px-4 py-2 text-xs uppercase tracking-[0.35em] text-white/70">Authenticated • Premium • Fast Shipping</div>
+            <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[0.95]">
+              ${S.settings.tagline.includes('.')?S.settings.tagline.split('.').filter(Boolean).map((t,i)=>i===0?t+'.':` <span class="text-neon">${t.trim()}.</span>`).join('<br>'):S.settings.tagline}
+            </h1>
+            <p class="mt-6 max-w-xl text-base sm:text-lg text-white/65 leading-7">Clean secondhand and deadstock MacBooks, AirPods, PS5s, Sp5der clothing, and streetwear/tech essentials curated for the culture.</p>
+            <div class="mt-8 flex flex-col sm:flex-row gap-3">
+              <button onclick="go('shop')" class="rounded-full bg-white px-6 py-3 font-bold text-black transition hover:opacity-90">Browse Shop</button>
+              <button onclick="go('contact')" class="rounded-full soft-border bg-white/5 px-6 py-3 font-bold text-white transition hover:bg-white/10">Message Us</button>
+            </div>
+            <div class="mt-10 flex flex-wrap gap-4 text-sm text-white/60">
+              <div class="soft-border rounded-2xl px-4 py-3">${S.products.filter(p=>p.status==="Sold").length}+ items sold</div>
+              <div class="soft-border rounded-2xl px-4 py-3">Real products only</div>
+              <div class="soft-border rounded-2xl px-4 py-3">Fast shipping</div>
+            </div>
+          </div>
+          <div class="fade-up-2">
+            <div class="soft-border rounded-[2rem] bg-panel p-4 shadow-glow">
+              ${hi?`<img src="${hi}" class="h-[420px] w-full rounded-[1.5rem] object-cover" alt="Featured" />`:`<div class="h-[420px] w-full rounded-[1.5rem] bg-white/5 flex items-center justify-center text-white/20">No listings yet</div>`}
+              <div class="mt-4 grid grid-cols-2 gap-3">
+                ${feat.slice(1).map(p=>`<button onclick="openP(${p.id})" class="rounded-2xl soft-border bg-white/5 p-3 text-left transition hover:bg-white/10"><div class="text-sm font-bold">${p.name}</div><div class="text-xs text-white/45">${fp(p.price)} • ${p.condition}</div></button>`).join("")}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
+      <div class="flex items-end justify-between gap-4 mb-6">
+        <div><h2 class="text-2xl sm:text-3xl font-black">All Listings</h2><p class="mt-2 text-white/55">${S.products.filter(p=>p.status==="Available").length} available right now.</p></div>
+        <button onclick="go('shop')" class="hidden sm:inline-flex rounded-full soft-border px-4 py-2 text-sm font-semibold text-white/80 hover:bg-white/5">View All</button>
+      </div>
+      <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">${S.products.map(p=>pcard(p,false)).join("")}</div>
+    </section>
+  </main>`;
+}
+
+function shopPage(){
+  const tabs=["All","Tech","Clothing","Gaming","Accessories"];
+  const filtered=S.filter==="All"?S.products:S.products.filter(p=>p.category===S.filter);
+  return`<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    <div class="mb-8"><h1 class="text-3xl sm:text-4xl font-black">Shop</h1><p class="mt-3 text-white/60">Tap a product to see details and message to buy.</p></div>
+    <div class="flex flex-wrap gap-2 mb-8">${tabs.map(t=>`<button onclick="setFilter('${t}')" class="rounded-full px-4 py-2 text-sm font-semibold transition ${S.filter===t?'tab-active':'tab-inactive hover:bg-white/8'}">${t}</button>`).join("")}</div>
+    ${filtered.length===0?`<div class="text-center py-20 text-white/30 text-lg">No listings in this category yet.</div>`:`<div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">${filtered.map(p=>pcard(p,false)).join("")}</div>`}
+  </main>`;
+}
+
+function productPage(){
+  const p=S.products.find(x=>x.id===S.selId);
+  if(!p)return`<main class="p-20 text-center text-white/40">Not found. <button onclick="go('shop')" class="text-neon underline">Back</button></main>`;
+  const imgs=p.images&&p.images.length?p.images:["https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80"];
+  return`<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+    <div class="grid gap-8 lg:grid-cols-2">
+      <div>
+        <div class="overflow-hidden rounded-[2rem] soft-border bg-panel">
+          <img id="mainImg" src="${imgs[0]}" class="h-[420px] w-full object-cover" alt="${p.name}" onerror="this.src='https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=80'" />
+        </div>
+        ${imgs.length>1?`<div class="mt-4 grid grid-cols-4 gap-3">${imgs.map((img,i)=>`<button onclick="swapImg(${i})" class="overflow-hidden rounded-2xl soft-border bg-white/5"><img src="${img}" class="h-20 w-full object-cover opacity-80 hover:opacity-100 transition" /></button>`).join("")}</div>`:""}
+      </div>
+      <div class="lg:pt-4">
+        <div class="mb-4 flex items-center gap-3">${bdg(p.status)}<span class="text-white/40 text-sm uppercase tracking-[0.25em]">${p.category}</span></div>
+        <h1 class="text-4xl sm:text-5xl font-black tracking-tight">${p.name}</h1>
+        <div class="mt-5 flex items-end gap-4"><div class="text-4xl font-black">${fp(p.price)}</div><div class="pb-1 text-sm text-white/45">Condition: ${p.condition}</div></div>
+        <p class="mt-6 max-w-xl text-white/65 leading-7">${p.desc}</p>
+        <div class="mt-8 grid gap-3 sm:grid-cols-2">
+          <div class="rounded-2xl soft-border bg-white/5 p-4"><div class="text-xs uppercase tracking-[0.25em] text-white/45">Condition</div><div class="mt-2 font-bold">${p.condition}</div></div>
+          <div class="rounded-2xl soft-border bg-white/5 p-4"><div class="text-xs uppercase tracking-[0.25em] text-white/45">Status</div><div class="mt-2 font-bold">${p.status}</div></div>
+        </div>
+        <div class="mt-8 flex flex-col sm:flex-row gap-3">
+          ${p.status==="Available"?`<button onclick="msgBuy('${p.name.replace(/'/g,"\\'")} - ${fp(p.price)}')" class="rounded-full bg-neon px-6 py-3 font-bold text-black transition hover:opacity-90">Message to Buy</button>`:`<button disabled class="rounded-full bg-white/10 px-6 py-3 font-bold text-white/40 cursor-not-allowed">Sold Out</button>`}
+          <button onclick="go('shop')" class="rounded-full soft-border bg-white/5 px-6 py-3 font-bold text-white transition hover:bg-white/10">Back to Shop</button>
+        </div>
+      </div>
+    </div>
+  </main>`;
+}
+
+function aboutPage(){
+  return`<main class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+    <div class="rounded-[2rem] soft-border bg-panel p-8 sm:p-10">
+      <h1 class="text-3xl sm:text-4xl font-black">About</h1>
+      <p class="mt-6 text-white/65 leading-7">We're a modern reseller store built for people who want premium items without the guesswork. Every listing is curated, authenticated, and easy to buy straight from your phone.</p>
+      <div class="mt-8 grid gap-4 sm:grid-cols-3">
+        <div class="rounded-2xl soft-border bg-white/5 p-5"><div class="text-3xl font-black text-neon">${S.products.filter(p=>p.status==="Sold").length}+</div><div class="mt-1 text-sm text-white/60">items sold</div></div>
+        <div class="rounded-2xl soft-border bg-white/5 p-5"><div class="text-3xl font-black text-neon">Fast</div><div class="mt-1 text-sm text-white/60">shipping & response time</div></div>
+        <div class="rounded-2xl soft-border bg-white/5 p-5"><div class="text-3xl font-black text-neon">Real</div><div class="mt-1 text-sm text-white/60">products only, no fluff</div></div>
+      </div>
+    </div>
+  </main>`;
+}
+
+function contactPage(){
+  return`<main class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-14 sm:py-20">
+    <div class="rounded-[2rem] soft-border bg-panel p-8 sm:p-10">
+      <h1 class="text-3xl sm:text-4xl font-black">Contact</h1>
+      <p class="mt-4 text-white/60">Reach out on your preferred platform to buy, ask questions, or request more photos.</p>
+      <div class="mt-8 grid gap-4 sm:grid-cols-3">
+        <button onclick="window.open('${S.settings.instagram}','_blank')" class="rounded-2xl soft-border bg-white/5 p-5 text-left transition hover:bg-white/10"><div class="font-bold">Instagram</div><div class="mt-1 text-sm text-white/55">DM us for fast replies</div></button>
+        <button onclick="window.open('${S.settings.snapchat}','_blank')" class="rounded-2xl soft-border bg-white/5 p-5 text-left transition hover:bg-white/10"><div class="font-bold">Snapchat</div><div class="mt-1 text-sm text-white/55">Quick item updates</div></button>
+        <button onclick="msgBuy('General Inquiry')" class="rounded-2xl soft-border bg-white/5 p-5 text-left transition hover:bg-white/10"><div class="font-bold">WhatsApp</div><div class="mt-1 text-sm text-white/55">Tap to message directly</div></button>
+      </div>
+    </div>
+  </main>`;
+}
+
+function adminHTML(){
+  if(!S.adminUnlocked){
+    return`<div class="apanel flex items-center justify-center p-6">
+      <div class="rounded-[2rem] soft-border bg-panel p-8 w-full max-w-sm text-center">
+        <div class="text-4xl mb-4">🔐</div>
+        <h2 class="text-2xl font-black mb-2">Admin Access</h2>
+        <p class="text-white/50 text-sm mb-6">Enter your password to manage the store.</p>
+        <input class="ai mb-3" type="password" id="apwi" placeholder="Password" onkeydown="if(event.key==='Enter')checkAdmin()" />
+        <div id="apwe" class="text-red-400 text-xs mb-3 hidden">Wrong password. Default: admin123</div>
+        <div class="flex gap-3">
+          <button onclick="closeAdmin()" class="flex-1 rounded-full border border-white/10 bg-white/5 py-3 font-bold text-white/70 hover:bg-white/10 transition">Cancel</button>
+          <button onclick="checkAdmin()" class="flex-1 rounded-full bg-neon py-3 font-bold text-black hover:opacity-90 transition">Enter</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  const tabs=[{id:"products",label:"Listings"},{id:"settings",label:"Settings"},{id:"password",label:"Password"}];
+  let content="";
+
+  if(S.adminPage==="products"){
+    content=`<div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-black">Manage Listings</h2>
+      <button onclick="openAdd()" class="rounded-full bg-neon px-5 py-2 text-sm font-bold text-black hover:opacity-90 transition">+ Add Listing</button>
+    </div>
+    ${S.products.length===0?`<div class="text-center py-16 text-white/30">No listings yet. Add one above!</div>`:`<div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">${S.products.map(p=>pcard(p,true)).join("")}</div>`}`;
+  } else if(S.adminPage==="settings"){
+    content=`<h2 class="text-2xl font-black mb-6">Store Settings</h2>
+    <div class="max-w-lg space-y-5">
+      <div><label class="block text-xs uppercase tracking-widest text-white/50 mb-2">Store Name</label><input class="ai" id="s_name" value="${S.settings.storeName}" /></div>
+      <div><label class="block text-xs uppercase tracking-widest text-white/50 mb-2">Tagline</label><input class="ai" id="s_tag" value="${S.settings.tagline}" /></div>
+      <div><label class="block text-xs uppercase tracking-widest text-white/50 mb-2">WhatsApp Number (digits only)</label><input class="ai" id="s_wa" value="${S.settings.whatsapp}" /></div>
+      <div><label class="block text-xs uppercase tracking-widest text-white/50 mb-2">Instagram URL</label><input class="ai" id="s_ig" value="${S.settings.instagram}" /></div>
+      <div><label class="block text-xs uppercase tracking-widest text-white/50 mb-2">Snapchat URL</label><input class="ai" id="s_sc" value="${S.settings.snapchat}" /></div>
+      <button onclick="saveSet()" class="rounded-full bg-neon px-6 py-3 font-bold text-black hover:opacity-90 transition">Save Settings</button>
+      <div id="setSaved" class="text-neon text-sm hidden">✓ Saved!</div>
+    </div>`;
+  } else if(S.adminPage==="password"){
+    content=`<h2 class="text-2xl font-black mb-6">Change Password</h2>
+    <div class="max-w-sm space-y-4">
+      <div><label class="block text-xs uppercase tracking-widest text-white/50 mb-2">Current Password</label><input class="ai" type="password" id="pw_c" /></div>
+      <div><label class="block text-xs uppercase tracking-widest text-white/50 mb-2">New Password</label><input class="ai" type="password" id="pw_n" /></div>
+      <div><label class="block text-xs uppercase tracking-widest text-white/50 mb-2">Confirm New Password</label><input class="ai" type="password" id="pw_cf" /></div>
+      <button onclick="changePw()" class="rounded-full bg-neon px-6 py-3 font-bold text-black hover:opacity-90 transition">Update Password</button>
+      <div id="pwMsg" class="text-sm hidden"></div>
+    </div>`;
+  }
+
+  return`<div class="apanel">
+    <div class="sticky top-0 z-10 border-b border-white/10 bg-black/80 backdrop-blur-xl">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
+          <div class="text-lg font-black">Admin Panel</div>
+          <div class="flex items-center gap-2">
+            ${tabs.map(t=>`<button onclick="setAP('${t.id}')" class="rounded-full px-4 py-2 text-sm font-semibold transition ${S.adminPage===t.id?'bg-white text-black':'text-white/60 hover:text-white hover:bg-white/5'}">${t.label}</button>`).join("")}
+            <button onclick="closeAdmin()" class="ml-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-white/60 hover:bg-white/10 transition">✕ Exit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">${content}</div>
+  </div>`;
+}
+
+function modalHTML(isEdit){
+  const p=isEdit?S.editP:S.newP;
+  const title=isEdit?"Edit Listing":"Add New Listing";
+  const imgs=p.images||[];
+  const thumbs=imgs.map((img,i)=>`<div class="ti"><img src="${img}" onerror="this.src=''" /><button class="tr" onclick="${isEdit?'rmEI':'rmNI'}(${i})">✕</button></div>`).join("");
+  return`<div class="overlay" onclick="if(event.target===this)closeModal()">
+    <div class="mbox">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-black">${title}</h2>
+        <button onclick="closeModal()" class="text-white/40 hover:text-white text-2xl leading-none">✕</button>
+      </div>
+      <div class="space-y-4">
+        <div><label class="block text-xs uppercase tracking-widest text-white/50 mb-2">Item Name *</label><input class="ai" id="m_name" value="${p.name}" placeholder="e.g. MacBook Pro M2" /></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block text-xs uppercase tracking-widest text-white/50 mb-2">Category</label>
+            <select class="ai" id="m_cat">${["Tech","Clothing","Gaming","Accessories"].map(c=>`<option ${p.category===c?'selected':''}>${c}</option>`).join("")}</select>
+          </div>
+          <div><label class="block text-xs uppercase tracking-widest text-white/50 mb-2">Condition</label>
+            <select class="ai" id="m_cond">${["Like New","Open Box","Used"].map(c=>`<option ${p.condition===c?'selected':''}>${c}</option>`).join("")}</select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block text-xs uppercase tracking-widest text-white/50 mb-2">Price ($)</label><input class="ai" id="m_price" type="number" value="${p.price}" placeholder="299" /></div>
+          <div><label class="block text-xs uppercase tracking-widest text-white/50 mb-2">Status</label>
+            <select class="ai" id="m_status">${["Available","Sold"].map(s=>`<option ${p.status===s?'selected':''}>${s}</option>`).join("")}</select>
+          </div>
+        </div>
+        <div><label class="block text-xs uppercase tracking-widest text-white/50 mb-2">Description</label><textarea class="ai" id="m_desc" rows="3" placeholder="Describe the item, condition, what's included...">${p.desc}</textarea></div>
+        <div>
+          <label class="block text-xs uppercase tracking-widest text-white/50 mb-2">Photos</label>
+          <div class="upload-zone" id="uzn" onclick="document.getElementById('pfi').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event,'${isEdit?'e':'n'}')">
+            <div class="text-3xl mb-2">📷</div>
+            <div class="text-white/60 text-sm">Click to upload photos or drag & drop</div>
+            <div class="text-white/30 text-xs mt-1">JPG, PNG, WEBP — multiple allowed</div>
+          </div>
+          <input type="file" id="pfi" accept="image/*" multiple class="hidden" onchange="handleFiles(event,'${isEdit?'e':'n'}')" />
+          <div class="tgrid" id="tgrid">${thumbs}</div>
+          <div class="mt-3">
+            <label class="block text-xs uppercase tracking-widest text-white/50 mb-2">Or paste an image URL</label>
+            <div class="flex gap-2">
+              <input class="ai flex-1" id="m_url" placeholder="https://..." />
+              <button onclick="addUrl('${isEdit?'e':'n'}')" class="rounded-xl bg-white/10 px-4 py-2 text-sm font-bold hover:bg-white/20 transition whitespace-nowrap">Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-3 mt-6">
+        <button onclick="closeModal()" class="flex-1 rounded-full border border-white/10 bg-white/5 py-3 font-bold text-white/70 hover:bg-white/10 transition">Cancel</button>
+        <button onclick="${isEdit?'saveEdit()':'saveNew()'}" class="flex-1 rounded-full bg-neon py-3 font-bold text-black hover:opacity-90 transition">${isEdit?"Save Changes":"Add Listing"}</button>
+      </div>
+      <div id="merr" class="text-red-400 text-sm mt-3 hidden"></div>
+    </div>
+  </div>`;
+}
+
+function readFiles(files,t){
+  const imgs=t==='e'?S.editP.images:S.newP.images;
+  Array.from(files).slice(0,10-imgs.length).forEach(file=>{
+    const r=new FileReader();
+    r.onload=e=>{imgs.push(e.target.result);rThumbs(t)};
+    r.readAsDataURL(file);
+  });
+}
+function handleFiles(ev,t){readFiles(ev.target.files,t);ev.target.value=""}
+function handleDrop(ev,t){ev.preventDefault();document.getElementById('uzn').classList.remove('drag-over');readFiles(ev.dataTransfer.files,t)}
+function addUrl(t){
+  const url=document.getElementById('m_url').value.trim();
+  if(!url)return;
+  const imgs=t==='e'?S.editP.images:S.newP.images;
+  imgs.push(url);
+  document.getElementById('m_url').value="";
+  rThumbs(t);
+}
+function rThumbs(t){
+  const imgs=t==='e'?S.editP.images:S.newP.images;
+  const g=document.getElementById('tgrid');
+  if(!g)return;
+  g.innerHTML=imgs.map((img,i)=>`<div class="ti"><img src="${img}" onerror="this.src=''" /><button class="tr" onclick="${t==='e'?'rmEI':'rmNI'}(${i})">✕</button></div>`).join("");
+}
+function rmNI(i){S.newP.images.splice(i,1);rThumbs('n')}
+function rmEI(i){S.editP.images.splice(i,1);rThumbs('e')}
+function getMV(){return{name:document.getElementById('m_name').value.trim(),category:document.getElementById('m_cat').value,condition:document.getElementById('m_cond').value,price:document.getElementById('m_price').value,status:document.getElementById('m_status').value,desc:document.getElementById('m_desc').value.trim()}}
+function mErr(msg){const e=document.getElementById('merr');if(e){e.textContent=msg;e.classList.remove('hidden')}}
+function saveNew(){
+  const v=getMV();
+  if(!v.name)return mErr("Please enter an item name.");
+  if(!v.price)return mErr("Please enter a price.");
+  S.nextId++;
+  S.products.unshift({id:S.nextId,...v,images:[...S.newP.images]});
+  saveP();
+  S.newP={name:"",category:"Tech",condition:"Like New",price:"",status:"Available",images:[],desc:""};
+  S.showAdd=false;
+  render();
+}
+function saveEdit(){
+  const v=getMV();
+  if(!v.name)return mErr("Please enter an item name.");
+  const idx=S.products.findIndex(p=>p.id===S.editP.id);
+  if(idx>-1){S.products[idx]={...S.editP,...v};saveP()}
+  S.editP=null;render();
+}
+function delP(id){if(!confirm("Delete this listing?"))return;S.products=S.products.filter(p=>p.id!==id);saveP();render()}
+function openAdd(){S.newP={name:"",category:"Tech",condition:"Like New",price:"",status:"Available",images:[],desc:""};S.showAdd=true;render()}
+function openEdit(id){const p=S.products.find(x=>x.id===id);S.editP=JSON.parse(JSON.stringify(p));S.showAdd=false;render()}
+function closeModal(){S.showAdd=false;S.editP=null;render()}
+function saveSet(){
+  S.settings.storeName=document.getElementById('s_name').value.trim()||"Your Store Name";
+  S.settings.tagline=document.getElementById('s_tag').value.trim()||"Premium Resells. Authenticated.";
+  S.settings.whatsapp=document.getElementById('s_wa').value.trim();
+  S.settings.instagram=document.getElementById('s_ig').value.trim();
+  S.settings.snapchat=document.getElementById('s_sc').value.trim();
+  saveSettings();
+  const el=document.getElementById('setSaved');
+  if(el){el.classList.remove('hidden');setTimeout(()=>el.classList.add('hidden'),2000)}
+}
+function changePw(){
+  const c=document.getElementById('pw_c').value,n=document.getElementById('pw_n').value,cf=document.getElementById('pw_cf').value;
+  const m=document.getElementById('pwMsg');
+  if(c!==S.adminPw){m.textContent="❌ Current password is wrong.";m.className="text-red-400 text-sm";m.classList.remove('hidden');return}
+  if(n.length<4){m.textContent="❌ Must be at least 4 characters.";m.className="text-red-400 text-sm";m.classList.remove('hidden');return}
+  if(n!==cf){m.textContent="❌ Passwords don't match.";m.className="text-red-400 text-sm";m.classList.remove('hidden');return}
+  S.adminPw=n;m.textContent="✓ Password updated!";m.className="text-neon text-sm";m.classList.remove('hidden');
+  setTimeout(()=>m.classList.add('hidden'),2000);
+}
+
+function go(pg){S.page=pg;S.showAdmin=false;render();window.scrollTo({top:0,behavior:"smooth"})}
+function setFilter(f){S.filter=f;S.page="shop";render()}
+function openP(id){S.selId=id;S.page="product";render();window.scrollTo({top:0,behavior:"smooth"})}
+function swapImg(i){
+  const p=S.products.find(x=>x.id===S.selId);
+  if(p&&p.images[i]){const el=document.getElementById("mainImg");if(el)el.src=p.images[i]}
+}
+function msgBuy(item){const t=encodeURIComponent(`Hi! I'm interested in buying: ${item}. Is it still available?`);window.open(`https://wa.me/${S.settings.whatsapp}?text=${t}`,"_blank")}
+function openAdmin(){S.showAdmin=true;render()}
+function closeAdmin(){S.showAdmin=false;S.adminUnlocked=false;render()}
+function setAP(p){S.adminPage=p;render()}
+function checkAdmin(){const v=document.getElementById('apwi').value;if(v===S.adminPw){S.adminUnlocked=true;render()}else{document.getElementById('apwe').classList.remove('hidden')}}
+
+function footerHTML(){
+  return`<footer class="border-t border-white/10 py-8"><div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-sm text-white/45 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between"><div>© 2026 ${S.settings.storeName}</div><div>Premium resells • authenticated • mobile-first</div></div></footer>`;
+}
+
+function render(){
+  if(S.showAdmin){
+    app.innerHTML=adminHTML();
+    if(S.showAdd)app.innerHTML+=modalHTML(false);
+    if(S.editP)app.innerHTML+=modalHTML(true);
+    return;
+  }
+  let pg="";
+  if(S.page==="home")pg=homePage();
+  else if(S.page==="shop")pg=shopPage();
+  else if(S.page==="product")pg=productPage();
+  else if(S.page==="about")pg=aboutPage();
+  else if(S.page==="contact")pg=contactPage();
+  app.innerHTML=navHTML()+pg+footerHTML();
+  if(S.showAdd)app.innerHTML+=modalHTML(false);
+  if(S.editP)app.innerHTML+=modalHTML(true);
+}
+
+render();
+</script>
+</body>
+</html>
